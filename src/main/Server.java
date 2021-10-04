@@ -99,4 +99,20 @@ public class Server {
         return patientDevices.get(index);
     }
 
+    /**
+     * Verifica se o dispositivo do paciente está presente na lista.
+     *
+     * @param deviceId String - Id do dispositivo;
+     * @return PatientDevice | null;
+     */
+    public static boolean devicePatientExists(String deviceId) {
+        return (patientDevices.stream()
+                .filter(
+                        patientDevice -> deviceId.equals(
+                                patientDevice.getDeviceId()
+                        )
+                )
+                .findFirst()
+                .orElse(null) != null);
+    }
 }
