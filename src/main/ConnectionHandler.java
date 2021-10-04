@@ -146,20 +146,20 @@ public class ConnectionHandler implements Runnable {
         float patientSeverityLevel = patient.getFloat("patientSeverityLevel");
 
         if (!Server.devicePatientExists(deviceId)) {
-            PatientDevice temp2 = new PatientDevice(
-                    name,
-                    deviceId,
-                    bodyTemperature,
-                    respiratoryFrequency,
-                    bloodOxygenation,
-                    bloodPressure,
-                    heartRate,
-                    isSeriousCondition,
-                    isSeriousConditionLabel,
-                    patientSeverityLevel
+            Server.addPatientDevice(
+                    new PatientDevice(
+                            name,
+                            deviceId,
+                            bodyTemperature,
+                            respiratoryFrequency,
+                            bloodOxygenation,
+                            bloodPressure,
+                            heartRate,
+                            isSeriousCondition,
+                            isSeriousConditionLabel,
+                            patientSeverityLevel
+                    )
             );
-
-            Server.addPatientDevice(temp2);
         } else {
             for (int i = 0; i < Server.patientDeviceListSize(); i++) {
                 if (deviceId.equals(Server.getPatientDevice(i).getDeviceId())) {
