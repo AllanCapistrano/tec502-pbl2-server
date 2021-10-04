@@ -118,7 +118,7 @@ public class ConnectionHandler implements Runnable {
     /**
      * Adiciona todos os pacientes recebidos na lista de pacientes.
      *
-     * @param jsonArray JSONArray - Lista dos dispositibos dos pacientes no 
+     * @param jsonArray JSONArray - Lista dos dispositibos dos pacientes no
      * formato JSON.
      */
     private void addPatientDevicesToServer(JSONArray jsonArray) {
@@ -134,8 +134,8 @@ public class ConnectionHandler implements Runnable {
      * formato JSON.
      */
     private void addIndividualPatientDevice(JSONObject patient) {
-        int i;
-
+        String name = patient.getString("name");
+        String deviceId = patient.getString("deviceId");
         float bodyTemperature = patient.getFloat("bodyTemperature");
         int respiratoryFrequency = patient.getInt("respiratoryFrequency");
         float bloodOxygenation = patient.getFloat("bloodOxygenation");
@@ -145,25 +145,10 @@ public class ConnectionHandler implements Runnable {
         String isSeriousConditionLabel = patient.getString("isSeriousConditionLabel");
         float patientSeverityLevel = patient.getFloat("patientSeverityLevel");
 
-        for (i = 0; i < Server.patientDeviceListSize(); i++) {
-            if (patient.getString("deviceId").equals(Server.getPatientDevice(i).getDeviceId())) {
-                Server.getPatientDevice(i).setBodyTemperature(bodyTemperature);
-                Server.getPatientDevice(i).setRespiratoryFrequency(respiratoryFrequency);
-                Server.getPatientDevice(i).setBloodOxygenation(bloodOxygenation);
-                Server.getPatientDevice(i).setBloodPressure(bloodPressure);
-                Server.getPatientDevice(i).setHeartRate(heartRate);
-                Server.getPatientDevice(i).setIsSeriousCondition(isSeriousCondition);
-                Server.getPatientDevice(i).setIsSeriousConditionLabel(isSeriousConditionLabel);
-                Server.getPatientDevice(i).setPatientSeverityLevel(patientSeverityLevel);
-
-                break;
-            }
-        }
-
-        if (i == Server.patientDeviceListSize()) {
-            PatientDevice temp = new PatientDevice(
-                    patient.getString("name"),
-                    patient.getString("deviceId"),
+        if (!Server.devicePatientExists(deviceId)) {
+            PatientDevice temp2 = new PatientDevice(
+                    name,
+                    deviceId,
                     bodyTemperature,
                     respiratoryFrequency,
                     bloodOxygenation,
@@ -174,7 +159,22 @@ public class ConnectionHandler implements Runnable {
                     patientSeverityLevel
             );
 
-            Server.addPatientDevice(temp);
+            Server.addPatientDevice(temp2);
+        } else {
+            for (int i = 0; i < Server.patientDeviceListSize(); i++) {
+                if (deviceId.equals(Server.getPatientDevice(i).getDeviceId())) {
+                    Server.getPatientDevice(i).setBodyTemperature(bodyTemperature);
+                    Server.getPatientDevice(i).setRespiratoryFrequency(respiratoryFrequency);
+                    Server.getPatientDevice(i).setBloodOxygenation(bloodOxygenation);
+                    Server.getPatientDevice(i).setBloodPressure(bloodPressure);
+                    Server.getPatientDevice(i).setHeartRate(heartRate);
+                    Server.getPatientDevice(i).setIsSeriousCondition(isSeriousCondition);
+                    Server.getPatientDevice(i).setIsSeriousConditionLabel(isSeriousConditionLabel);
+                    Server.getPatientDevice(i).setPatientSeverityLevel(patientSeverityLevel);
+
+                    break;
+                }
+            }
         }
     }
 }
