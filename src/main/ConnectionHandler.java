@@ -84,7 +84,7 @@ public class ConnectionHandler implements Runnable {
                 System.out.println("\tMétodo POST");
                 System.out.println("\t\tRota: " + httpRequest.getString("route"));
 
-                if (httpRequest.getString("route").equals("patients/create")) {
+                if (httpRequest.getString("route").equals("/patients")) {
                     addPatientDevicesToServer(httpRequest.getJSONArray("body"));
                 }
 
