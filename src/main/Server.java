@@ -38,7 +38,7 @@ public class Server {
         System.out.println("> Aguardando conexão");
 
         try {
-            /* Definindo a porta do servidor. */
+            /* Definindo o endereço e a porta do servidor. */
             Server.server = new ServerSocket();
             InetAddress addr = InetAddress.getByName(IP_ADDRESS);
             InetSocketAddress inetSocket = new InetSocketAddress(addr, PORT);
