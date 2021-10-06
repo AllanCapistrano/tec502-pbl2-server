@@ -1,16 +1,20 @@
 package main;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import models.PatientDevice;
+import org.json.JSONObject;
 
 /**
  * Classe do Server.
@@ -22,6 +26,7 @@ public class Server {
     /*-------------------------- Constantes ----------------------------------*/
     private static final String IP_ADDRESS = "localhost";
     private static final int PORT = 12244;
+    private static final int DEFAULT_AMOUNT_PATIENTS = 5;
     /*------------------------------------------------------------------------*/
 
     private static ServerSocket server;
@@ -32,10 +37,44 @@ public class Server {
     private static ArrayList<ConnectionHandler> connHandler = new ArrayList<>();
     private static ExecutorService pool = Executors.newCachedThreadPool();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         System.out.println("> Iniciando o servidor");
         System.out.println("> Aguardando conexão");
+
+        /* -- TEMPORÁRIO -- */
+        Socket connFog = new Socket("localhost", 12245);
+
+        JSONObject json = new JSONObject();
+
+        /* Definindo os dados que serão enviadas para o Server. */
+        json.put("method", "GET"); // Método HTTP
+        json.put("route", "/patients/" + DEFAULT_AMOUNT_PATIENTS); // Rota
+
+        try {
+            ObjectOutputStream output
+                    = new ObjectOutputStream(connFog.getOutputStream());
+            
+
+            /* Enviando a requisição para o servidor. */
+            output.flush();
+            output.writeObject(json);
+
+            ObjectInputStream input 
+                    = new ObjectInputStream(connFog.getInputStream());
+            
+            System.out.println((JSONObject) input.readObject());
+            
+            output.close();            
+            input.close();
+        } catch (IOException ioe) {
+            System.err.println("Erro ao requisitar uma certa quantidade de "
+                    + "pacientes para a Fog.");
+            System.out.println(ioe);
+        }
+
+        connFog.close();
+        /* ------------ */
 
         try {
             /* Definindo o endereço e a porta do servidor. */
