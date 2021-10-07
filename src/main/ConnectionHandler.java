@@ -69,14 +69,20 @@ public class ConnectionHandler implements Runnable {
                 System.out.println("\tMétodo GET");
                 System.out.println("\t\tRota: " + httpRequest.getString("route"));
 
-                switch (httpRequest.getString("route")) {
+                if (httpRequest.getString("route").contains("/patients")) {
                     /* Envia a lista dos dispositivos dos pacientes. */
-                    case "/patients":
-                        System.out.println("> Enviando lista de pacientes");
+                    System.out.println("> Enviando lista de pacientes");
 
-                        this.sendPatientDevicesList();
+                    this.sendPatientDevicesList();
 
-                        break;
+                } else if(httpRequest.getString("route").contains("/patient")){
+                    /* Envia o dispositivo do paciente. */
+                    System.out.println("> Enviando o dispositivo do paciente");
+                    
+                    String[] temp = httpRequest.getString("route").split("/");
+                    
+                    this.sendPatientDevice(temp[2]);
+                    
                 }
 
                 break;
@@ -104,13 +110,35 @@ public class ConnectionHandler implements Runnable {
             /* Colocando a lista de pacientes no formato JSON. */
             JSONObject json
                     = PatientToJson.handle(Server.getPatientDevicesList(), true);
-
+            
             output.writeObject(json);
 
             output.close();
         } catch (IOException ioe) {
             System.err.println("Erro ao tentar enviar a lista dos dispositivos "
                     + "dos pacientes.");
+            System.out.println(ioe);
+        }
+    }
+    
+    /**
+     * Envia o dispositivo do paciente.
+     */
+    private void sendPatientDevice(String deviceId) {
+        try {
+            ObjectOutputStream output
+                    = new ObjectOutputStream(connection.getOutputStream());
+
+            /* Colocando o dispositivo do paciente no formato JSON. */
+            JSONObject json
+                    = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
+            
+            output.writeObject(json);
+
+            output.close();
+        } catch (IOException ioe) {
+            System.err.println("Erro ao tentar enviar o dispositivo "
+                    + "do paciente");
             System.out.println(ioe);
         }
     }
