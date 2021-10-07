@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import models.PatientDevice;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import utils.ComparePatients;
 
 /**
  * Classe do Server.
@@ -47,7 +49,7 @@ public class Server {
 
         JSONObject json = new JSONObject();
 
-        /* Definindo os dados que serão enviadas para o Server. */
+        /* Definindo os dados que serão enviadas para o Fog Server. */
         json.put("method", "GET"); // Método HTTP
         json.put("route", "/patients/" + DEFAULT_AMOUNT_PATIENTS); // Rota
 
@@ -55,16 +57,48 @@ public class Server {
             ObjectOutputStream output
                     = new ObjectOutputStream(connFog.getOutputStream());
             
-
-            /* Enviando a requisição para o servidor. */
+            /* Enviando a requisição para o Fog Server. */
             output.flush();
             output.writeObject(json);
 
+            /* Recebendo a resposta do Fog Server. */
             ObjectInputStream input 
                     = new ObjectInputStream(connFog.getInputStream());
             
-            System.out.println((JSONObject) input.readObject());
+            JSONObject jsonResponse = (JSONObject) input.readObject();
             
+            JSONArray jsonArray = jsonResponse.getJSONArray("body");
+
+            /* Adicionando os dispositivos dos pacientes em uma lista.*/
+            for (int i = 0; i < jsonArray.length(); i++) {
+                patientDevices.add(
+                    new PatientDevice(
+                        jsonArray.getJSONObject(i).
+                                getString("name"),
+                        jsonArray.getJSONObject(i).
+                                getString("deviceId"),
+                        jsonArray.getJSONObject(i).
+                                getFloat("bodyTemperature"),
+                        jsonArray.getJSONObject(i).
+                                getInt("respiratoryFrequency"),
+                        jsonArray.getJSONObject(i).
+                                getFloat("bloodOxygenation"),
+                        jsonArray.getJSONObject(i).
+                                getInt("bloodPressure"),
+                        jsonArray.getJSONObject(i).
+                                getInt("heartRate"),
+                        jsonArray.getJSONObject(i).
+                                getBoolean("isSeriousCondition"),
+                        jsonArray.getJSONObject(i).
+                                getString("isSeriousConditionLabel"),
+                        jsonArray.getJSONObject(i).
+                                getFloat("patientSeverityLevel")        
+                    )
+                );
+            }
+
+            Collections.sort(patientDevices, new ComparePatients());
+           
             output.close();            
             input.close();
         } catch (IOException ioe) {
@@ -153,5 +187,21 @@ public class Server {
                 )
                 .findFirst()
                 .orElse(null) != null);
+    }
+    
+    /**
+     * Retorna o dispositivo do paciente conforme o identificador.
+     * 
+     * @param deviceId String - Identificador do dispositivo.
+     * @return PatientDevice
+     */
+    public static PatientDevice getPatientDeviceById(String deviceId){
+        for (int i = 0; i < patientDevices.size(); i++) {
+            if(patientDevices.get(i).getDeviceId().equals(deviceId)){
+                return patientDevices.get(i);
+            }
+        }
+        
+        return null;
     }
 }
