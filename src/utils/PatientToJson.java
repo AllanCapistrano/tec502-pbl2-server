@@ -16,11 +16,13 @@ public class PatientToJson {
      * Transforma a lista de pacientes no formato JSON.
      *
      * @param patientDevicesList List<PatientDevice> - Lista de pacientes.
-     * @param hasStatusCode
+     * @param amount int - Quantidade de pacientes mais graves da lista.
+     * @param hasStatusCode - Status code.
      * @return JSONObject
      */
     public static JSONObject handle(
             List<PatientDevice> patientDevicesList,
+            int amount,
             boolean hasStatusCode
     ) {
         JSONObject json = new JSONObject();
@@ -29,17 +31,16 @@ public class PatientToJson {
         if (hasStatusCode){
             json.put("statusCode", 200);
         }
-
-        for (PatientDevice patientDevice : patientDevicesList) {
+        
+        for (int i = 0; i < amount; i++) {
             JSONObject patientDeviceJson = new JSONObject();
 
-            
             patientDeviceJson.put("name",
-                    patientDevice.getName());
+                    patientDevicesList.get(i).getName());
             patientDeviceJson.put("deviceId",
-                    patientDevice.getDeviceId());
+                    patientDevicesList.get(i).getDeviceId());
             patientDeviceJson.put("isSeriousConditionLabel",
-                    patientDevice.getIsSeriousConditionLabel());
+                    patientDevicesList.get(i).getIsSeriousConditionLabel());
 
             jsonArray.put(patientDeviceJson);
         }
