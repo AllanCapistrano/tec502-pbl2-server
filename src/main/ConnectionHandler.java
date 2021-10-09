@@ -80,9 +80,9 @@ public class ConnectionHandler implements Runnable {
                     String[] temp = httpRequest.getString("route").split("/");
 
                     /* Requisita os N mais graves de cada fog. */
-                    this.requestPatientsDeviceListToFog(temp[2]);
+                    this.requestPatientsDeviceListToFog();
                     /* Envia para o monitoramento a lista com os N mais graves. */
-                    this.sendPatientDevicesList();
+                    this.sendPatientDevicesList(Integer.parseInt(temp[2]));
 
                 } else if (httpRequest.getString("route").contains("/patient")) {
                     /* Envia o dispositivo do paciente. */
@@ -91,36 +91,27 @@ public class ConnectionHandler implements Runnable {
                     String[] temp = httpRequest.getString("route").split("/");
 
                     this.sendPatientDevice(temp[2]);
-
                 }
 
                 break;
-//            case "POST": // Cria e adiciona os dispositivos dos pacientes na lista.
-//                System.out.println("\tMétodo POST");
-//                System.out.println("\t\tRota: " + httpRequest.getString("route"));
-//
-//                if (httpRequest.getString("route").equals("/patients")) {
-//                    addPatientDevicesToServer(httpRequest.getJSONArray("body"));
-//                    
-//                    this.sendPatientDevicesList();
-//                }
-//
-//                break;
         }
         System.out.println("");
     }
 
     /**
-     * Envia a lista dos dispositivos dos pacientes.
+     * Envia a lista dos dispositivos dos pacientes mais graves, de acordo com
+     * a quantidade especificada.
+     * 
+     * @param amount int - Quantidade de pacientes mais graves.
      */
-    private void sendPatientDevicesList() {
+    private void sendPatientDevicesList(int amount) {
         try {
             ObjectOutputStream output
                     = new ObjectOutputStream(connection.getOutputStream());
 
             /* Colocando a lista de pacientes no formato JSON. */
             JSONObject json
-                    = PatientToJson.handle(Server.getPatientDevicesList(), true);
+                    = PatientToJson.handle(Server.getPatientDevicesList(), amount, true);
 
             output.writeObject(json);
 
@@ -134,15 +125,16 @@ public class ConnectionHandler implements Runnable {
 
     /**
      * Envia o dispositivo do paciente.
+     * 
+     * @param deviceId String - Identificador do dispositivo do paciente.
      */
     private void sendPatientDevice(String deviceId) {
         try {
             ObjectOutputStream output
                     = new ObjectOutputStream(connection.getOutputStream());
-
-            /* Colocando o dispositivo do paciente no formato JSON. */
-            JSONObject json
-                    = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
+            
+            JSONObject json;
+            json = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
 
             output.writeObject(json);
 
@@ -157,10 +149,8 @@ public class ConnectionHandler implements Runnable {
     /**
      * Requisita para as Fogs um certo número de pacientes, e salva os mesmos na
      * lista.
-     *
-     * @param amount String - Quantidade de pacientes.
      */
-    private void requestPatientsDeviceListToFog(String amount) {
+    private void requestPatientsDeviceListToFog() {
         try {
             Socket connFog = new Socket(FOG_SERVER_ADDRESS, FOG_SERVER_PORT[0]);
 
@@ -168,7 +158,7 @@ public class ConnectionHandler implements Runnable {
 
             /* Definindo os dados que serão enviadas para o Fog Server. */
             json.put("method", "GET"); // Método HTTP
-            json.put("route", "/patients/" + amount); // Rota
+            json.put("route", "/patients"); // Rota
 
             ObjectOutputStream output
                     = new ObjectOutputStream(connFog.getOutputStream());
@@ -216,7 +206,7 @@ public class ConnectionHandler implements Runnable {
             System.out.println(cnfe);
         }
     }
-
+    
     /**
      * Adiciona todos os pacientes recebidos na lista de pacientes.
      *
