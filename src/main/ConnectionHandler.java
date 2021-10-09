@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Collections;
 import models.PatientDevice;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import utils.ComparePatients;
 import utils.PatientToJson;
 
 /**
@@ -15,6 +17,11 @@ import utils.PatientToJson;
  * @author Allan Capistrano
  */
 public class ConnectionHandler implements Runnable {
+
+    /*-------------------------- Constantes ----------------------------------*/
+    private static final String FOG_SERVER_ADDRESS = "localhost";
+    private static final int[] FOG_SERVER_PORT = {12245};
+    /*------------------------------------------------------------------------*/
 
     private final Socket connection;
     private final ObjectInputStream input;
@@ -41,9 +48,6 @@ public class ConnectionHandler implements Runnable {
             /* Processandos a requisição. */
             this.processRequests(this.received);
 
-            System.out.println("> Quantidade de dispositivos conectados: "
-                    + Server.patientDeviceListSize());
-
             /* Finalizando as conexões. */
             input.close();
             connection.close();
@@ -69,23 +73,24 @@ public class ConnectionHandler implements Runnable {
                 System.out.println("\tMétodo GET");
                 System.out.println("\t\tRota: " + httpRequest.getString("route"));
 
-                switch (httpRequest.getString("route")) {
+                if (httpRequest.getString("route").contains("/patients")) {
                     /* Envia a lista dos dispositivos dos pacientes. */
-                    case "/patients":
-                        System.out.println("> Enviando lista de pacientes");
+                    System.out.println("> Enviando lista de pacientes");
 
-                        this.sendPatientDevicesList();
+                    String[] temp = httpRequest.getString("route").split("/");
 
-                        break;
-                }
+                    /* Requisita os N mais graves de cada fog. */
+                    this.requestPatientsDeviceListToFog();
+                    /* Envia para o monitoramento a lista com os N mais graves. */
+                    this.sendPatientDevicesList(Integer.parseInt(temp[2]));
 
-                break;
-            case "POST": // Cria e adiciona os dispositivos dos pacintes na lista.
-                System.out.println("\tMétodo POST");
-                System.out.println("\t\tRota: " + httpRequest.getString("route"));
+                } else if (httpRequest.getString("route").contains("/patient")) {
+                    /* Envia o dispositivo do paciente. */
+                    System.out.println("> Enviando o dispositivo do paciente");
 
-                if (httpRequest.getString("route").equals("/patients")) {
-                    addPatientDevicesToServer(httpRequest.getJSONArray("body"));
+                    String[] temp = httpRequest.getString("route").split("/");
+
+                    this.sendPatientDevice(temp[2]);
                 }
 
                 break;
@@ -94,16 +99,19 @@ public class ConnectionHandler implements Runnable {
     }
 
     /**
-     * Envia a lista dos dispositivos dos pacientes.
+     * Envia a lista dos dispositivos dos pacientes mais graves, de acordo com
+     * a quantidade especificada.
+     * 
+     * @param amount int - Quantidade de pacientes mais graves.
      */
-    private void sendPatientDevicesList() {
+    private void sendPatientDevicesList(int amount) {
         try {
             ObjectOutputStream output
                     = new ObjectOutputStream(connection.getOutputStream());
 
             /* Colocando a lista de pacientes no formato JSON. */
             JSONObject json
-                    = PatientToJson.handle(Server.getPatientDevicesList(), true);
+                    = PatientToJson.handle(Server.getPatientDevicesList(), amount, true);
 
             output.writeObject(json);
 
@@ -116,12 +124,99 @@ public class ConnectionHandler implements Runnable {
     }
 
     /**
+     * Envia o dispositivo do paciente.
+     * 
+     * @param deviceId String - Identificador do dispositivo do paciente.
+     */
+    private void sendPatientDevice(String deviceId) {
+        try {
+            ObjectOutputStream output
+                    = new ObjectOutputStream(connection.getOutputStream());
+            
+            JSONObject json;
+            json = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
+
+            output.writeObject(json);
+
+            output.close();
+        } catch (IOException ioe) {
+            System.err.println("Erro ao tentar enviar o dispositivo "
+                    + "do paciente");
+            System.out.println(ioe);
+        }
+    }
+
+    /**
+     * Requisita para as Fogs um certo número de pacientes, e salva os mesmos na
+     * lista.
+     */
+    private void requestPatientsDeviceListToFog() {
+        try {
+            Socket connFog = new Socket(FOG_SERVER_ADDRESS, FOG_SERVER_PORT[0]);
+
+            JSONObject json = new JSONObject();
+
+            /* Definindo os dados que serão enviadas para o Fog Server. */
+            json.put("method", "GET"); // Método HTTP
+            json.put("route", "/patients"); // Rota
+
+            ObjectOutputStream output
+                    = new ObjectOutputStream(connFog.getOutputStream());
+
+            /* Enviando a requisição para o Fog Server. */
+            output.flush();
+            output.writeObject(json);
+
+            /* Recebendo a resposta do Fog Server. */
+            ObjectInputStream response
+                    = new ObjectInputStream(connFog.getInputStream());
+
+            JSONObject jsonResponse = (JSONObject) response.readObject();
+
+            /* Somente se a resposta possuir o método e a resposta certa, que os
+            os dispositivos enviados serão adicionados na lista do servidor. */
+            if (jsonResponse.getString("method").equals("POST")
+                    && jsonResponse.getString("route").equals("/patients")) {
+                System.out.println("\n> Processando a requisição");
+                System.out.println("\tMétodo POST");
+                System.out.println("\t\tRota: " + jsonResponse.getString("route"));
+                System.out.println("> Recebendo os dispositivos enviados pelas "
+                        + "Fogs.");
+
+                this.addPatientDevicesToServer(jsonResponse.getJSONArray("body"));
+
+                /* OBS:
+                A ordeneção na verdade tem que ser depois de adicionar os 
+                pacientes de TODAS as Fogs. */
+                Collections.sort(
+                        Server.getPatientDevicesList(),
+                        new ComparePatients()
+                );
+            }
+
+            output.close();
+            response.close();
+            connFog.close();
+        } catch (IOException ioe) {
+            System.err.println("Erro ao requisitar uma certa quantidade de "
+                    + "pacientes para a Fog.");
+            System.out.println(ioe);
+        } catch (ClassNotFoundException cnfe) {
+            System.err.println("Classe JSONObject não foi encontrada");
+            System.out.println(cnfe);
+        }
+    }
+    
+    /**
      * Adiciona todos os pacientes recebidos na lista de pacientes.
      *
      * @param jsonArray JSONArray - Lista dos dispositibos dos pacientes no
      * formato JSON.
      */
     private void addPatientDevicesToServer(JSONArray jsonArray) {
+        /* Limpando a lista de dispositivos. */
+        Server.removeAllPatientsDevices();
+
         for (int i = 0; i < jsonArray.length(); i++) {
             addIndividualPatientDevice(jsonArray.getJSONObject(i));
         }

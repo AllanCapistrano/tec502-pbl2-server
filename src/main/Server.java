@@ -32,7 +32,7 @@ public class Server {
     private static ArrayList<ConnectionHandler> connHandler = new ArrayList<>();
     private static ExecutorService pool = Executors.newCachedThreadPool();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         System.out.println("> Iniciando o servidor");
         System.out.println("> Aguardando conexão");
@@ -114,5 +114,28 @@ public class Server {
                 )
                 .findFirst()
                 .orElse(null) != null);
+    }
+
+    /**
+     * Retorna o dispositivo do paciente conforme o identificador.
+     *
+     * @param deviceId String - Identificador do dispositivo.
+     * @return PatientDevice
+     */
+    public static PatientDevice getPatientDeviceById(String deviceId) {
+        for (int i = 0; i < patientDevices.size(); i++) {
+            if (patientDevices.get(i).getDeviceId().equals(deviceId)) {
+                return patientDevices.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove todos os elementos da lista de dispositivos dos pacientes.
+     */
+    public static void removeAllPatientsDevices() {
+        patientDevices.removeAll(patientDevices);
     }
 }

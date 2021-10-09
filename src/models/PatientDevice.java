@@ -66,6 +66,42 @@ public class PatientDevice implements Serializable {
         return deviceId;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getIsSeriousConditionLabel() {
+        return isSeriousConditionLabel;
+    }
+
+    public float getBodyTemperature() {
+        return bodyTemperature;
+    }
+
+    public int getRespiratoryFrequency() {
+        return respiratoryFrequency;
+    }
+
+    public float getBloodOxygenation() {
+        return bloodOxygenation;
+    }
+
+    public int getBloodPressure() {
+        return bloodPressure;
+    }
+
+    public int getHeartRate() {
+        return heartRate;
+    }
+
+    public boolean isIsSeriousCondition() {
+        return isSeriousCondition;
+    }
+
+    public float getPatientSeverityLevel() {
+        return patientSeverityLevel;
+    }
+
     public void setBodyTemperature(float bodyTemperature) {
         this.bodyTemperature = bodyTemperature;
     }
