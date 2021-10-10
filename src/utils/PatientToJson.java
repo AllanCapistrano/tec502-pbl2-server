@@ -27,11 +27,15 @@ public class PatientToJson {
     ) {
         JSONObject json = new JSONObject();
         JSONArray jsonArray = new JSONArray();
-        
-        if (hasStatusCode){
+
+        if (hasStatusCode) {
             json.put("statusCode", 200);
         }
-        
+
+        amount = (amount > patientDevicesList.size())
+                ? patientDevicesList.size()
+                : amount;
+
         for (int i = 0; i < amount; i++) {
             JSONObject patientDeviceJson = new JSONObject();
 
@@ -49,17 +53,17 @@ public class PatientToJson {
 
         return json;
     }
-    
+
     /**
      * Transforma o dispositivo do paciente no formato JSON.
      *
      * @param patient PatientDevice - Dispositivo do paciente.
      * @return JSONObject
      */
-    public static JSONObject handle(PatientDevice patient){
+    public static JSONObject handle(PatientDevice patient) {
         JSONObject json = new JSONObject();
         json.put("statusCode", 200);
-        
+
         JSONObject jsonPatient = new JSONObject();
         jsonPatient.put("name", patient.getName());
         jsonPatient.put("deviceId", patient.getDeviceId());
@@ -71,9 +75,9 @@ public class PatientToJson {
         jsonPatient.put("isSeriousCondition", patient.isIsSeriousCondition());
         jsonPatient.put("isSeriousConditionLabel", patient.getIsSeriousConditionLabel());
         jsonPatient.put("patientSeverityLevel", patient.getPatientSeverityLevel());
-          
+
         json.put("data", jsonPatient);
-        
+
         return json;
     }
 }
