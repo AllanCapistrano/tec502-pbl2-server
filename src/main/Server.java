@@ -21,7 +21,7 @@ public class Server {
 
     /*-------------------------- Constantes ----------------------------------*/
     private static final String IP_ADDRESS = "localhost";
-    private static final int PORT = 12244;
+    private static final int PORT = 12250;
     /*------------------------------------------------------------------------*/
 
     private static ServerSocket server;
