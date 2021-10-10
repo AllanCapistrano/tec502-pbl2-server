@@ -13,13 +13,13 @@ public class ComparePatients implements Comparator<PatientDevice> {
 
     @Override
     public int compare(PatientDevice pd1, PatientDevice pd2) {
-//        if (pd1.getPatientSeverityLevel() > pd2.getPatientSeverityLevel()) {
-//            /* Coloca o mais a esquerda da lista. */
-//            return -1;
-//        } else if (pd1.getPatientSeverityLevel() < pd2.getPatientSeverityLevel()) {
-//            /* Coloca o mais a direita da lista. */
-//            return 1;
-//        }
+        if (pd1.getPatientSeverityLevel() > pd2.getPatientSeverityLevel()) {
+            /* Coloca o mais a esquerda da lista. */
+            return -1;
+        } else if (pd1.getPatientSeverityLevel() < pd2.getPatientSeverityLevel()) {
+            /* Coloca o mais a direita da lista. */
+            return 1;
+        }
 
         return 0;
     }
