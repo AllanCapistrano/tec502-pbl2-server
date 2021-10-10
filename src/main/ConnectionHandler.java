@@ -20,7 +20,14 @@ public class ConnectionHandler implements Runnable {
 
     /*-------------------------- Constantes ----------------------------------*/
     private static final String FOG_SERVER_ADDRESS = "localhost";
-    private static final int[] FOG_SERVER_PORT = {12245};
+    private static final int[] FOG_SERVER_PORT = {
+        12240,
+        12241,
+        12241,
+        12242,
+        12243,
+        12244
+    };
     /*------------------------------------------------------------------------*/
 
     private final Socket connection;
@@ -79,8 +86,20 @@ public class ConnectionHandler implements Runnable {
 
                     String[] temp = httpRequest.getString("route").split("/");
 
+                    /* Limpando a lista de dispositivos. */
+                    Server.removeAllPatientsDevices();
+
                     /* Requisita os N mais graves de cada fog. */
-                    this.requestPatientsDeviceListToFog();
+                    for (int i = 0; i < FOG_SERVER_PORT.length; i++) {
+                        this.requestPatientsDeviceListToFog(i);
+                    }
+                    
+                    /* Ordenando a lista de dispositivos. */
+                    Collections.sort(
+                            Server.getPatientDevicesList(),
+                            new ComparePatients()
+                    );
+
                     /* Envia para o monitoramento a lista com os N mais graves. */
                     this.sendPatientDevicesList(Integer.parseInt(temp[2]));
 
@@ -99,9 +118,9 @@ public class ConnectionHandler implements Runnable {
     }
 
     /**
-     * Envia a lista dos dispositivos dos pacientes mais graves, de acordo com
-     * a quantidade especificada.
-     * 
+     * Envia a lista dos dispositivos dos pacientes mais graves, de acordo com a
+     * quantidade especificada.
+     *
      * @param amount int - Quantidade de pacientes mais graves.
      */
     private void sendPatientDevicesList(int amount) {
@@ -125,14 +144,14 @@ public class ConnectionHandler implements Runnable {
 
     /**
      * Envia o dispositivo do paciente.
-     * 
+     *
      * @param deviceId String - Identificador do dispositivo do paciente.
      */
     private void sendPatientDevice(String deviceId) {
         try {
             ObjectOutputStream output
                     = new ObjectOutputStream(connection.getOutputStream());
-            
+
             JSONObject json;
             json = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
 
@@ -149,10 +168,12 @@ public class ConnectionHandler implements Runnable {
     /**
      * Requisita para as Fogs um certo número de pacientes, e salva os mesmos na
      * lista.
+     * 
+     * @param fogIndex int - Índice da Fog.
      */
-    private void requestPatientsDeviceListToFog() {
+    private void requestPatientsDeviceListToFog(int fogIndex) {
         try {
-            Socket connFog = new Socket(FOG_SERVER_ADDRESS, FOG_SERVER_PORT[0]);
+            Socket connFog = new Socket(FOG_SERVER_ADDRESS, FOG_SERVER_PORT[fogIndex]);
 
             JSONObject json = new JSONObject();
 
@@ -184,14 +205,6 @@ public class ConnectionHandler implements Runnable {
                         + "Fogs.");
 
                 this.addPatientDevicesToServer(jsonResponse.getJSONArray("body"));
-
-                /* OBS:
-                A ordeneção na verdade tem que ser depois de adicionar os 
-                pacientes de TODAS as Fogs. */
-                Collections.sort(
-                        Server.getPatientDevicesList(),
-                        new ComparePatients()
-                );
             }
 
             output.close();
@@ -206,7 +219,7 @@ public class ConnectionHandler implements Runnable {
             System.out.println(cnfe);
         }
     }
-    
+
     /**
      * Adiciona todos os pacientes recebidos na lista de pacientes.
      *
@@ -214,9 +227,6 @@ public class ConnectionHandler implements Runnable {
      * formato JSON.
      */
     private void addPatientDevicesToServer(JSONArray jsonArray) {
-        /* Limpando a lista de dispositivos. */
-        Server.removeAllPatientsDevices();
-
         for (int i = 0; i < jsonArray.length(); i++) {
             addIndividualPatientDevice(jsonArray.getJSONObject(i));
         }
