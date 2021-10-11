@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import models.FogServer;
 import models.PatientDevice;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,17 +22,13 @@ import utils.PatientToJson;
  */
 public class ConnectionHandler implements Runnable {
 
-    /*-------------------------- Constantes ----------------------------------*/
-    private static final String FOG_SERVER_ADDRESS = "localhost";
-    private static final int[] FOG_SERVER_PORT = {
-        12240,
-        12241,
-        12241,
-        12242,
-        12243,
-        12244
-    };
-    /*------------------------------------------------------------------------*/
+    private final static List<FogServer> fogServers = Arrays.asList(
+            new FogServer("localhost", 12240),
+            new FogServer("localhost", 12241),
+            new FogServer("localhost", 12242),
+            new FogServer("localhost", 12243),
+            new FogServer("localhost", 12244)
+    );
 
     private final Socket connection;
     private final ObjectInputStream input;
@@ -90,8 +90,11 @@ public class ConnectionHandler implements Runnable {
                     Server.removeAllPatientsDevices();
 
                     /* Requisita os N mais graves de cada fog. */
-                    for (int i = 0; i < FOG_SERVER_PORT.length; i++) {
-                        this.requestPatientsDeviceListToFog(i);
+                    for (int i = 0; i < fogServers.size(); i++) {
+                        this.requestPatientsDeviceListToFog(
+                                fogServers.get(i).getAddress(),
+                                fogServers.get(i).getPort()
+                        );
                     }
                     
                     /* Ordenando a lista de dispositivos. */
@@ -171,9 +174,9 @@ public class ConnectionHandler implements Runnable {
      * 
      * @param fogIndex int - Índice da Fog.
      */
-    private void requestPatientsDeviceListToFog(int fogIndex) {
+    private void requestPatientsDeviceListToFog(String address, int port) {
         try {
-            Socket connFog = new Socket(FOG_SERVER_ADDRESS, FOG_SERVER_PORT[fogIndex]);
+            Socket connFog = new Socket(address, port);
 
             JSONObject json = new JSONObject();
 
