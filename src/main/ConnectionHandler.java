@@ -70,7 +70,6 @@ public class ConnectionHandler implements Runnable {
      */
     private void processRequests(JSONObject httpRequest) {
         System.out.println("> Processando a requisição");
-        System.out.println("List size: " + Server.patientDeviceListSize());
 
         switch (httpRequest.getString("method")) {
             case "GET": // Envia dados.
@@ -104,14 +103,7 @@ public class ConnectionHandler implements Runnable {
                     /* Envia para o monitoramento a lista com os N mais graves. */
                     this.sendPatientDevicesList(Integer.parseInt(temp[2]));
 
-                } else if (httpRequest.getString("route").contains("/patient")) {
-                    /* Envia o dispositivo do paciente. */
-                    System.out.println("> Enviando o dispositivo do paciente");
-
-                    String[] temp = httpRequest.getString("route").split("/");
-
-                    this.sendPatientDevice(temp[2]);
-                }
+                } 
 
                 break;
         }
@@ -139,29 +131,6 @@ public class ConnectionHandler implements Runnable {
         } catch (IOException ioe) {
             System.err.println("Erro ao tentar enviar a lista dos dispositivos "
                     + "dos pacientes.");
-            System.out.println(ioe);
-        }
-    }
-
-    /**
-     * Envia o dispositivo do paciente.
-     *
-     * @param deviceId String - Identificador do dispositivo do paciente.
-     */
-    private void sendPatientDevice(String deviceId) {
-        try {
-            ObjectOutputStream output
-                    = new ObjectOutputStream(connection.getOutputStream());
-
-            JSONObject json;
-            json = PatientToJson.handle(Server.getPatientDeviceById(deviceId));
-
-            output.writeObject(json);
-
-            output.close();
-        } catch (IOException ioe) {
-            System.err.println("Erro ao tentar enviar o dispositivo "
-                    + "do paciente");
             System.out.println(ioe);
         }
     }
@@ -244,14 +213,7 @@ public class ConnectionHandler implements Runnable {
     private void addIndividualPatientDevice(JSONObject patient) {
         String name = patient.getString("name");
         String deviceId = patient.getString("deviceId");
-        float bodyTemperature = patient.getFloat("bodyTemperature");
-        int respiratoryFrequency = patient.getInt("respiratoryFrequency");
-        float bloodOxygenation = patient.getFloat("bloodOxygenation");
-        int bloodPressure = patient.getInt("bloodPressure");
-        int heartRate = patient.getInt("heartRate");
-        boolean isSeriousCondition = patient.getBoolean("isSeriousCondition");
         String isSeriousConditionLabel = patient.getString("isSeriousConditionLabel");
-        float patientSeverityLevel = patient.getFloat("patientSeverityLevel");
         FogServer fogServer = (FogServer) patient.get("fogServer");
 
         if (!Server.devicePatientExists(deviceId)) {
@@ -259,28 +221,14 @@ public class ConnectionHandler implements Runnable {
                     new PatientDevice(
                             name,
                             deviceId,
-                            bodyTemperature,
-                            respiratoryFrequency,
-                            bloodOxygenation,
-                            bloodPressure,
-                            heartRate,
-                            isSeriousCondition,
                             isSeriousConditionLabel,
-                            patientSeverityLevel,
                             fogServer
                     )
             );
         } else {
             for (int i = 0; i < Server.patientDeviceListSize(); i++) {
                 if (deviceId.equals(Server.getPatientDevice(i).getDeviceId())) {
-                    Server.getPatientDevice(i).setBodyTemperature(bodyTemperature);
-                    Server.getPatientDevice(i).setRespiratoryFrequency(respiratoryFrequency);
-                    Server.getPatientDevice(i).setBloodOxygenation(bloodOxygenation);
-                    Server.getPatientDevice(i).setBloodPressure(bloodPressure);
-                    Server.getPatientDevice(i).setHeartRate(heartRate);
-                    Server.getPatientDevice(i).setIsSeriousCondition(isSeriousCondition);
                     Server.getPatientDevice(i).setIsSeriousConditionLabel(isSeriousConditionLabel);
-                    Server.getPatientDevice(i).setPatientSeverityLevel(patientSeverityLevel);
 
                     break;
                 }
