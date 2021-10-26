@@ -45,6 +45,8 @@ public class PatientToJson {
                     patientDevicesList.get(i).getDeviceId());
             patientDeviceJson.put("isSeriousConditionLabel",
                     patientDevicesList.get(i).getIsSeriousConditionLabel());
+            patientDeviceJson.put("fogServer",
+                    patientDevicesList.get(i).getFogServer());
 
             jsonArray.put(patientDeviceJson);
         }
