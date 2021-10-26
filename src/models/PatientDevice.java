@@ -66,6 +66,22 @@ public class PatientDevice implements Serializable {
         this.fogServer = fogServer;
     }
 
+    /**
+     * Método construtor.
+     *
+     * @param name String - Nome do paciente.
+     * @param deviceId String - Identificador do dispositivo do paciente.
+     * @param isSeriousConditionLabel String - Condição atual do paciente em
+     * formato de texto.
+     * @param fogServer FogServer - Fog a qual o dispositivo está conectado.
+     */
+    public PatientDevice(String name, String deviceId, String isSeriousConditionLabel, FogServer fogServer) {
+        this.name = name;
+        this.deviceId = deviceId;
+        this.isSeriousConditionLabel = isSeriousConditionLabel;
+        this.fogServer = fogServer;
+    }
+    
     public String getDeviceId() {
         return deviceId;
     }
