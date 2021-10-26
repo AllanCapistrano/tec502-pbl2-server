@@ -251,6 +251,7 @@ public class ConnectionHandler implements Runnable {
         boolean isSeriousCondition = patient.getBoolean("isSeriousCondition");
         String isSeriousConditionLabel = patient.getString("isSeriousConditionLabel");
         float patientSeverityLevel = patient.getFloat("patientSeverityLevel");
+        FogServer fogServer = (FogServer) patient.get("fogServer");
 
         if (!Server.devicePatientExists(deviceId)) {
             Server.addPatientDevice(
@@ -264,7 +265,8 @@ public class ConnectionHandler implements Runnable {
                             heartRate,
                             isSeriousCondition,
                             isSeriousConditionLabel,
-                            patientSeverityLevel
+                            patientSeverityLevel,
+                            fogServer
                     )
             );
         } else {
