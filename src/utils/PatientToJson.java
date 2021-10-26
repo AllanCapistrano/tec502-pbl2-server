@@ -56,30 +56,4 @@ public class PatientToJson {
         return json;
     }
 
-    /**
-     * Transforma o dispositivo do paciente no formato JSON.
-     *
-     * @param patient PatientDevice - Dispositivo do paciente.
-     * @return JSONObject
-     */
-    public static JSONObject handle(PatientDevice patient) {
-        JSONObject json = new JSONObject();
-        json.put("statusCode", 200);
-
-        JSONObject jsonPatient = new JSONObject();
-        jsonPatient.put("name", patient.getName());
-        jsonPatient.put("deviceId", patient.getDeviceId());
-        jsonPatient.put("bodyTemperature", patient.getBodyTemperature());
-        jsonPatient.put("respiratoryFrequency", patient.getRespiratoryFrequency());
-        jsonPatient.put("bloodOxygenation", patient.getBloodOxygenation());
-        jsonPatient.put("bloodPressure", patient.getBloodPressure());
-        jsonPatient.put("heartRate", patient.getHeartRate());
-        jsonPatient.put("isSeriousCondition", patient.isIsSeriousCondition());
-        jsonPatient.put("isSeriousConditionLabel", patient.getIsSeriousConditionLabel());
-        jsonPatient.put("patientSeverityLevel", patient.getPatientSeverityLevel());
-
-        json.put("data", jsonPatient);
-
-        return json;
-    }
 }
