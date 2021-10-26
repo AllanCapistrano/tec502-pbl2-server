@@ -23,10 +23,7 @@ public class ConnectionHandler implements Runnable {
 
     private final static List<FogServer> fogServers = Arrays.asList(
             new FogServer("localhost", 12240),
-            new FogServer("localhost", 12241),
-            new FogServer("localhost", 12242),
-            new FogServer("localhost", 12243),
-            new FogServer("localhost", 12244)
+            new FogServer("localhost", 12241)
     );
 
     private final Socket connection;
@@ -73,6 +70,7 @@ public class ConnectionHandler implements Runnable {
      */
     private void processRequests(JSONObject httpRequest) {
         System.out.println("> Processando a requisição");
+        System.out.println("List size: " + Server.patientDeviceListSize());
 
         switch (httpRequest.getString("method")) {
             case "GET": // Envia dados.
@@ -92,10 +90,11 @@ public class ConnectionHandler implements Runnable {
                     for (int i = 0; i < fogServers.size(); i++) {
                         this.requestPatientsDeviceListToFog(
                                 fogServers.get(i).getAddress(),
-                                fogServers.get(i).getPort()
+                                fogServers.get(i).getPort(),
+                                Integer.parseInt(temp[2])
                         );
                     }
-                    
+
                     /* Ordenando a lista de dispositivos. */
                     Collections.sort(
                             Server.getPatientDevicesList(),
@@ -170,10 +169,12 @@ public class ConnectionHandler implements Runnable {
     /**
      * Requisita para as Fogs um certo número de pacientes, e salva os mesmos na
      * lista.
-     * 
-     * @param fogIndex int - Índice da Fog.
+     *
+     * @param address String - Endereço da Fog.
+     * @param port int - Porta da Fog.
+     * @param amount int - Quantidade de dispositivos de pacientes.
      */
-    private void requestPatientsDeviceListToFog(String address, int port) {
+    private void requestPatientsDeviceListToFog(String address, int port, int amount) {
         try {
             Socket connFog = new Socket(address, port);
 
@@ -181,7 +182,7 @@ public class ConnectionHandler implements Runnable {
 
             /* Definindo os dados que serão enviadas para o Fog Server. */
             json.put("method", "GET"); // Método HTTP
-            json.put("route", "/patients"); // Rota
+            json.put("route", "/patients/" + amount); // Rota
 
             ObjectOutputStream output
                     = new ObjectOutputStream(connFog.getOutputStream());
