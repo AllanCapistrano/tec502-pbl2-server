@@ -214,6 +214,7 @@ public class ConnectionHandler implements Runnable {
         String name = patient.getString("name");
         String deviceId = patient.getString("deviceId");
         String isSeriousConditionLabel = patient.getString("isSeriousConditionLabel");
+        float patientSeverityLevel = patient.getFloat("patientSeverityLevel");
         FogServer fogServer = (FogServer) patient.get("fogServer");
 
         if (!Server.devicePatientExists(deviceId)) {
@@ -222,6 +223,7 @@ public class ConnectionHandler implements Runnable {
                             name,
                             deviceId,
                             isSeriousConditionLabel,
+                            patientSeverityLevel,
                             fogServer
                     )
             );
@@ -229,7 +231,7 @@ public class ConnectionHandler implements Runnable {
             for (int i = 0; i < Server.patientDeviceListSize(); i++) {
                 if (deviceId.equals(Server.getPatientDevice(i).getDeviceId())) {
                     Server.getPatientDevice(i).setIsSeriousConditionLabel(isSeriousConditionLabel);
-
+                    Server.getPatientDevice(i).setPatientSeverityLevel(patientSeverityLevel);
                     break;
                 }
             }
