@@ -22,8 +22,8 @@ import utils.PatientToJson;
 public class ConnectionHandler implements Runnable {
 
     private final static List<FogServer> fogServers = Arrays.asList(
-            new FogServer("localhost", 12240),
-            new FogServer("localhost", 12241)
+            new FogServer("26.40.234.250", 12240),
+            new FogServer("26.174.47.54", 12241)
     );
 
     private final Socket connection;
